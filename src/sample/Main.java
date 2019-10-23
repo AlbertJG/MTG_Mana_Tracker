@@ -13,7 +13,7 @@ public class Main extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("MTG Mana Tracker v.0.1.0");
         primaryStage.setResizable(false);
-        primaryStage.setScene(new Scene(root, 800, 800));
+        primaryStage.setScene(new Scene(root, 800, 750));
         primaryStage.show();
     }
 
