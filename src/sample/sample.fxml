@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="800.0" style="-fx-background-color: #204161;" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="800.0" style="-fx-background-color: #204161;" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
       <ImageView fitHeight="379.0" fitWidth="283.0" layoutX="258.5" layoutY="236.0" pickOnBounds="true" preserveRatio="true">
          <image>
@@ -18,7 +18,7 @@
             <Image url="@../assets/Mana_Strip.png" />
          </image>
       </ImageView>
-      <ImageView fitHeight="50.0" fitWidth="50.0" layoutX="185.0" layoutY="70.0" pickOnBounds="true" preserveRatio="true">
+      <ImageView fx:id="White_Mana" fitHeight="50.0" fitWidth="50.0" layoutX="185.0" layoutY="70.0" onMouseEntered="#hoverOver" onMousePressed="#clickIcon" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@../assets/White_Mana.png" />
          </image>
@@ -53,5 +53,30 @@
             <Image url="@../assets/Green_Mana.png" />
          </image>
       </ImageView>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="264.0" layoutY="29.0" prefHeight="28.0" prefWidth="44.0" text="100" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="24.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="340.0" layoutY="29.0" prefHeight="28.0" prefWidth="44.0" text="100" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="24.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="416.0" layoutY="29.0" prefHeight="28.0" prefWidth="44.0" text="100" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="24.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="492.0" layoutY="29.0" prefHeight="28.0" prefWidth="44.0" text="100" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="24.0" />
+         </font>
+      </Label>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="568.0" layoutY="29.0" prefHeight="28.0" prefWidth="44.0" text="100" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="24.0" />
+         </font>
+      </Label>
    </children>
 </Pane>
