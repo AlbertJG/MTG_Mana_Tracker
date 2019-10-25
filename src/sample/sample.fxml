@@ -95,5 +95,10 @@
             <Image url="@../assets/Add_Spell.png" />
          </image>
       </ImageView>
+      <ImageView fitHeight="379.0" fitWidth="240.0" layoutX="-211.0" layoutY="236.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../assets/Spell_History.png" />
+         </image>
+      </ImageView>
    </children>
 </Pane>

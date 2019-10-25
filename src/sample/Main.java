@@ -1,5 +1,9 @@
 package sample;
 
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.*;
@@ -14,6 +18,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import static javafx.geometry.Pos.CENTER;
 
@@ -50,6 +55,7 @@ public class Main extends Application {
     private ImageView discardCard = new ImageView();
     private ImageView addCard = new ImageView();
     private ImageView card = new ImageView();
+    private ImageView spellHistory = new ImageView();
 
 
     public boolean cardToggled = false;
@@ -63,6 +69,9 @@ public class Main extends Application {
     private boolean greenManaDragged = false;
     private boolean colorlessManaDragged = false;
 
+    // -------- OTHER FLAGS --------
+    private boolean spellHistoryToggled = false;
+
 
 
     @Override
@@ -74,7 +83,6 @@ public class Main extends Application {
         Pane canvas = new Pane();
         canvas.setStyle("-fx-background-color:#204161;");
         canvas.setPrefSize(800,750);
-        canvas.setOnMouseClicked(backgroundSelected);
 
         // AVAILABLE MANA STRIP //
         ImageView availableMana = new ImageView("/assets/Mana_Strip.png");
@@ -204,9 +212,54 @@ public class Main extends Application {
         colorlessCounter.setLayoutX(568);
         colorlessCounter.setLayoutY(29);
 
+        // NEW SPELL CREATION //
+        newSpell.setText("NEW SPELL");
+        newSpell.setTextFill(Color.WHITE);
+        newSpell.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC, 24));
+        newSpell.setAlignment(CENTER);
+        newSpell.setPrefSize(150, 28);
+        newSpell.setLayoutX(325);
+        newSpell.setLayoutY(200);
+        newSpell.setDisable(true);
+        newSpell.visibleProperty().setValue(false);
+
+        addCard.visibleProperty().setValue(false);
+
+        discardCard.setImage(new Image("/assets/Discard.png"));
+        discardCard.setFitWidth(50);
+        discardCard.setFitHeight(50);
+        discardCard.setLayoutX(258.5);
+        discardCard.setLayoutY(651);
+        discardCard.setPreserveRatio(true);
+        discardCard.setSmooth(true);
+        discardCard.setCache(true);
+        discardCard.setDisable(true);
+        discardCard.visibleProperty().setValue(false);
+
+        addCard.setImage(new Image("/assets/Add_Spell.png"));
+        addCard.setFitWidth(50);
+        addCard.setFitHeight(50);
+        addCard.setLayoutX(491.5);
+        addCard.setLayoutY(651);
+        addCard.setPreserveRatio(true);
+        addCard.setSmooth(true);
+        addCard.setCache(true);
+        addCard.setDisable(true);
+        addCard.visibleProperty().setValue(false);
+
+        spellHistory.setImage(new Image("/assets/Spell_History.png"));
+        spellHistory.setFitWidth(240);
+        spellHistory.setFitHeight(379);
+        spellHistory.setLayoutX(-211);
+        spellHistory.setLayoutY(236);
+        spellHistory.translateXProperty().set(0);
+        spellHistory.setPreserveRatio(true);
+        spellHistory.setSmooth(true);
+        spellHistory.setCache(true);
+
         /*------------------------------------------------ CONTROLS ------------------------------------------------*/
         // CARD ICON CONTROLS //
-        card.setOnMousePressed(cardSelected);
+        card.addEventFilter(MouseEvent.ANY, cardSelection);
 
         // MANA ICON CONTROLS //
         whiteMana.addEventFilter(MouseEvent.ANY, determineClickAction);
@@ -216,10 +269,17 @@ public class Main extends Application {
         greenMana.addEventFilter(MouseEvent.ANY, determineClickAction);
         colorlessMana.addEventFilter(MouseEvent.ANY, determineClickAction);
 
+        // BACKGROUND CONTROLS //
+        canvas.setOnMouseClicked(backgroundSelected);
+
+        // SPELL HISTORY CONTROLS //
+        spellHistory.addEventFilter(MouseEvent.ANY, openSpellHistory);
+
         /*-------------------------------------------------- STAGE --------------------------------------------------*/
         root.getChildren().addAll(canvas, availableMana, card, whiteMana, blueMana, blackMana, redMana, greenMana, colorlessMana,
-                whiteCounter, blueCounter, blackCounter, redCounter, greenCounter, colorlessCounter);
-        primaryStage.setTitle("MTG Mana Tracker v.0.1.3");
+                whiteCounter, blueCounter, blackCounter, redCounter, greenCounter, colorlessCounter, newSpell, discardCard,
+                addCard, spellHistory);
+        primaryStage.setTitle("MTG Mana Tracker v.0.1.5");
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root, 800, 750));
         primaryStage.show();
@@ -315,11 +375,23 @@ public class Main extends Application {
                             counterValue = Math.max(0, Integer.parseInt(colorlessCounter.getText()) - 1);
                             colorlessCounter.setText(String.valueOf(counterValue));
                         }
+                        if(!cardToggled){
+                            newSpell.setDisable(false);
+                            newSpell.visibleProperty().setValue(true);
+                            discardCard.setDisable(false);
+                            discardCard.visibleProperty().setValue(true);
+                            addCard.setDisable(false);
+                            addCard.visibleProperty().setValue(true);
+                            cardToggled = true;
+                            System.out.println("CARD TOGGLED");
+                        }
                     }
                     manaIsDragged = false;
                     dragOccured = false;
                     root.getChildren().remove(event.getSource());
                     System.out.println("ICON DELETED");
+
+                    // Card should also be toggled when dropping mana into it //
                 }else if(event.getButton() == MouseButton.PRIMARY){
                     System.out.println("QUICK CLICK");
 
@@ -388,9 +460,9 @@ public class Main extends Application {
                     // Notice here we don't have to delete the copied icon since it was never created to begin with //
                 }
             }else if(event.getEventType().equals(MouseEvent.MOUSE_DRAGGED) && event.getButton() == MouseButton.PRIMARY){
+                int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
                 dragOccured = true;
                 manaIsDragged = true;
-                int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
 
                 switch (layoutX){
                     case 185:
@@ -418,6 +490,7 @@ public class Main extends Application {
                         colorlessManaDragged = true;
                         break;
                 }
+
                 double offsetX = event.getSceneX() - orgSceneX;
                 double offsetY = event.getSceneY() - orgSceneY;
                 double newTranslateX = orgTranslateX + offsetX;
@@ -429,52 +502,70 @@ public class Main extends Application {
         }
     };
 
+    EventHandler<MouseEvent> cardSelection = new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent event) {
+            if (event.getEventType().equals(MouseEvent.MOUSE_PRESSED)) {
+                if (event.getButton() == MouseButton.PRIMARY && !cardToggled) {
+                    // Card should become toggled and icons should appear //
+                    newSpell.setDisable(false);
+                    newSpell.visibleProperty().setValue(true);
+
+                    discardCard.setDisable(false);
+                    discardCard.visibleProperty().setValue(true);
+
+                    addCard.setDisable(false);
+                    addCard.visibleProperty().setValue(true);
+
+                    cardToggled = true;
+                    System.out.println("CARD TOGGLED");
+                }
+            }
+        }
+    };
+
     private EventHandler<MouseEvent> backgroundSelected = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent t) {
-            if(cardToggled == false){
+            if(cardToggled){
                 System.out.println("CARD DESELECTED");
-                card.setDisable(true);
+                newSpell.setDisable(true);
+                discardCard.setDisable(true);
+                addCard.setDisable(true);
+                newSpell.visibleProperty().setValue(false);
+                discardCard.visibleProperty().setValue(false);
+                addCard.visibleProperty().setValue(false);
+
                 cardToggled = false;
             }
         }
     };
 
-    EventHandler<MouseEvent> cardSelected = new EventHandler<MouseEvent>() {
+    EventHandler<MouseEvent> openSpellHistory = new EventHandler<MouseEvent>() {
         @Override
-        public void handle(MouseEvent t) {
-            if(cardToggled == false){
-                // If we click on the card
-                newSpell.setText("NEW SPELL");
-                newSpell.setTextFill(Color.WHITE);
-                newSpell.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
-                newSpell.setAlignment(CENTER);
-                newSpell.setPrefSize(150,28);
-                newSpell.setLayoutX(325);
-                newSpell.setLayoutY(200);
+        public void handle(MouseEvent event) {
+            if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED)) {
+                double dimX = event.getSceneX();
+                double dimY = event.getSceneY();
 
-                discardCard.setImage(new Image("/assets/Discard.png"));
-                discardCard.setFitWidth(50);
-                discardCard.setFitHeight(50);
-                discardCard.setLayoutX(258.5);
-                discardCard.setLayoutY(651);
-                discardCard.setPreserveRatio(true);
-                discardCard.setSmooth(true);
-                discardCard.setCache(true);
-
-                addCard.setImage(new Image("/assets/Add_Spell.png"));
-                addCard.setFitWidth(50);
-                addCard.setFitHeight(50);
-                addCard.setLayoutX(491.5);
-                addCard.setLayoutY(651);
-                addCard.setPreserveRatio(true);
-                addCard.setSmooth(true);
-                addCard.setCache(true);
-
-                root.getChildren().addAll(newSpell, discardCard, addCard);
-
-                cardToggled = true;
-                System.out.println("CARD SELECTED");
+                if (event.getButton() == MouseButton.PRIMARY && !spellHistoryToggled) {
+                    // Window should slide out //
+                    Timeline timeline = new Timeline();
+                    KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), 200, Interpolator.EASE_IN);
+                    KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
+                    timeline.getKeyFrames().add(kf);
+                    timeline.play();
+                    ((ImageView)event.getSource()).translateXProperty().set(230);
+                    spellHistoryToggled = true;
+                }else if(event.getButton() == MouseButton.PRIMARY && (dimX > 200 && dimX < 230) && (dimY > 390.5 && dimY < 460.5)){
+                    // Untoggle the history //
+                    Timeline timeline = new Timeline();
+                    KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), 0, Interpolator.EASE_OUT);
+                    KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
+                    timeline.getKeyFrames().add(kf);
+                    timeline.play();
+                    spellHistoryToggled = false;
+                }
             }
         }
     };
