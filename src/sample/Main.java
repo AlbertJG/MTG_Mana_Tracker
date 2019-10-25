@@ -2,12 +2,12 @@ package sample;
 
 import javafx.application.Application;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
 
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -20,24 +20,63 @@ import static javafx.geometry.Pos.CENTER;
 
 public class Main extends Application {
 
-    public Group root = new Group();
+    // -------- ROOT OBJECT -------- //
+    private Group root = new Group();
 
-    // properties for transitioning white mana icons //
-    public double orgWSceneX;
-    public double orgWSceneY;
-    public double orgWTranslateX;
-    public double orgWTranslateY;
+    // -------- MANA ICONS -------- //
+    private ImageView whiteMana = new ImageView();
+    private ImageView blueMana = new ImageView();
+    private ImageView blackMana = new ImageView();
+    private ImageView redMana = new ImageView();
+    private ImageView greenMana = new ImageView();
+    private ImageView colorlessMana = new ImageView();
+
+    // -------- MANA LABELS -------- //
+    private Label whiteCounter = new Label("10");
+    private Label blueCounter = new Label("0");
+    private Label blackCounter = new Label("0");
+    private Label redCounter = new Label("0");
+    private Label greenCounter = new Label("0");
+    private Label colorlessCounter = new Label("0");
+
+    // -------- MANA TRANSITION -------- //
+    private double orgSceneX;
+    private double orgSceneY;
+    private double orgTranslateX;
+    private double orgTranslateY;
+
+    // -------- CARD SELECTION -------- //
+    private Label newSpell = new Label();
+    private ImageView discardCard = new ImageView();
+    private ImageView addCard = new ImageView();
+    private ImageView card = new ImageView();
+
+
+    public boolean cardToggled = false;
+
+    // -------- MANA DRAGGED FLAGS -------- //
+    private boolean manaIsDragged = false;
+    private boolean whiteManaDragged = false;
+    private boolean blueManaDragged = false;
+    private boolean blackManaDragged = false;
+    private boolean redManaDragged = false;
+    private boolean greenManaDragged = false;
+    private boolean colorlessManaDragged = false;
+
+
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
 
-        // Set up the main pane
+        /*-------------------------------------------------- SETUP --------------------------------------------------*/
+
+        // CANVAS //
         Pane canvas = new Pane();
         canvas.setStyle("-fx-background-color:#204161;");
         canvas.setPrefSize(800,750);
+        canvas.setOnMouseClicked(backgroundSelected);
 
-        // Mana strip with all available mana
+        // AVAILABLE MANA STRIP //
         ImageView availableMana = new ImageView("/assets/Mana_Strip.png");
         availableMana.setFitWidth(460);
         availableMana.setFitHeight(130);
@@ -47,8 +86,8 @@ public class Main extends Application {
         availableMana.setSmooth(true);
         availableMana.setCache(true);
 
-        // Card Template //
-        ImageView card = new ImageView("/assets/Magic_Card_Template.png");
+        // CARD ICON //
+        card.setImage(new Image("/assets/Magic_Card_Template.png"));
         card.setFitWidth(283);
         card.setFitHeight(379);
         card.setLayoutX(258.5);
@@ -57,8 +96,8 @@ public class Main extends Application {
         card.setSmooth(true);
         card.setCache(true);
 
-        // White Mana Icon //
-        ImageView whiteMana = new ImageView("/assets/White_Mana.png");
+        // WHITE MANA ICON //
+        whiteMana.setImage(new Image("/assets/White_Mana.png"));
         whiteMana.setFitWidth(50);
         whiteMana.setFitHeight(50);
         whiteMana.setLayoutX(185);
@@ -66,12 +105,9 @@ public class Main extends Application {
         whiteMana.setPreserveRatio(true);
         whiteMana.setSmooth(true);
         whiteMana.setCache(true);
-        whiteMana.setOnMousePressed(whiteManaSelected);
-        whiteMana.setOnMouseDragged(whiteManaDragged);
-        whiteMana.setOnMouseReleased(whiteManaUnselected);
 
-        // Blue Mana Icon //
-        ImageView blueMana = new ImageView("/assets/Blue_Mana.png");
+        // BLUE MANA ICON //
+        blueMana.setImage(new Image("/assets/Blue_Mana.png"));
         blueMana.setFitWidth(50);
         blueMana.setFitHeight(50);
         blueMana.setLayoutX(261);
@@ -80,8 +116,8 @@ public class Main extends Application {
         blueMana.setSmooth(true);
         blueMana.setCache(true);
 
-        // Black Mana Icon //
-        ImageView blackMana = new ImageView("/assets/Black_Mana.png");
+        // BLACK MANA ICON //
+        blackMana.setImage(new Image("/assets/Black_Mana.png"));
         blackMana.setFitWidth(50);
         blackMana.setFitHeight(50);
         blackMana.setLayoutX(337);
@@ -90,8 +126,8 @@ public class Main extends Application {
         blackMana.setSmooth(true);
         blackMana.setCache(true);
 
-        // Red Mana Icon //
-        ImageView redMana = new ImageView("/assets/Red_Mana.png");
+        // RED MANA ICON //
+        redMana.setImage(new Image("/assets/Red_Mana.png"));
         redMana.setFitWidth(50);
         redMana.setFitHeight(50);
         redMana.setLayoutX(413);
@@ -100,8 +136,8 @@ public class Main extends Application {
         redMana.setSmooth(true);
         redMana.setCache(true);
 
-        // Green Mana Icon //
-        ImageView greenMana = new ImageView("/assets/Green_Mana.png");
+        // GREEN MANA ICON //
+        greenMana.setImage(new Image("/assets/Green_Mana.png"));
         greenMana.setFitWidth(50);
         greenMana.setFitHeight(50);
         greenMana.setLayoutX(489);
@@ -110,8 +146,8 @@ public class Main extends Application {
         greenMana.setSmooth(true);
         greenMana.setCache(true);
 
-        // Colorless Mana Icon //
-        ImageView colorlessMana = new ImageView("/assets/Colorless_Mana.png");
+        // COLORLESS MANA ICON //
+        colorlessMana.setImage(new Image("/assets/Colorless_Mana.png"));
         colorlessMana.setFitWidth(50);
         colorlessMana.setFitHeight(50);
         colorlessMana.setLayoutX(565);
@@ -120,8 +156,7 @@ public class Main extends Application {
         colorlessMana.setSmooth(true);
         colorlessMana.setCache(true);
 
-        // Here we include labels that serve as mana counters //
-        Label whiteCounter = new Label("100");
+        // WHITE MANA COUNTER //
         whiteCounter.setTextFill(Color.WHITE);
         whiteCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
         whiteCounter.setAlignment(CENTER);
@@ -129,7 +164,7 @@ public class Main extends Application {
         whiteCounter.setLayoutX(188);
         whiteCounter.setLayoutY(29);
 
-        Label blueCounter = new Label("100");
+        // BLUE MANA COUNTER //
         blueCounter.setTextFill(Color.WHITE);
         blueCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
         blueCounter.setAlignment(CENTER);
@@ -137,7 +172,7 @@ public class Main extends Application {
         blueCounter.setLayoutX(264);
         blueCounter.setLayoutY(29);
 
-        Label blackCounter = new Label("100");
+        // BLACK MANA COUNTER //
         blackCounter.setTextFill(Color.WHITE);
         blackCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
         blackCounter.setAlignment(CENTER);
@@ -145,7 +180,7 @@ public class Main extends Application {
         blackCounter.setLayoutX(340);
         blackCounter.setLayoutY(29);
 
-        Label redCounter = new Label("100");
+        // RED MANA COUNTER //
         redCounter.setTextFill(Color.WHITE);
         redCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
         redCounter.setAlignment(CENTER);
@@ -153,7 +188,7 @@ public class Main extends Application {
         redCounter.setLayoutX(416);
         redCounter.setLayoutY(29);
 
-        Label greenCounter = new Label("100");
+        // GREEN MANA COUNTER //
         greenCounter.setTextFill(Color.WHITE);
         greenCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
         greenCounter.setAlignment(CENTER);
@@ -161,7 +196,7 @@ public class Main extends Application {
         greenCounter.setLayoutX(492);
         greenCounter.setLayoutY(29);
 
-        Label colorlessCounter = new Label("100");
+        // COLORLESS MANA COUNTER //
         colorlessCounter.setTextFill(Color.WHITE);
         colorlessCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
         colorlessCounter.setAlignment(CENTER);
@@ -169,74 +204,280 @@ public class Main extends Application {
         colorlessCounter.setLayoutX(568);
         colorlessCounter.setLayoutY(29);
 
-        // Drag an item //
+        /*------------------------------------------------ CONTROLS ------------------------------------------------*/
+        // CARD ICON CONTROLS //
+        card.setOnMousePressed(cardSelected);
 
+        // MANA ICON CONTROLS //
+        whiteMana.addEventFilter(MouseEvent.ANY, determineClickAction);
+        blueMana.addEventFilter(MouseEvent.ANY, determineClickAction);
+        blackMana.addEventFilter(MouseEvent.ANY, determineClickAction);
+        redMana.addEventFilter(MouseEvent.ANY, determineClickAction);
+        greenMana.addEventFilter(MouseEvent.ANY, determineClickAction);
+        colorlessMana.addEventFilter(MouseEvent.ANY, determineClickAction);
 
+        /*-------------------------------------------------- STAGE --------------------------------------------------*/
         root.getChildren().addAll(canvas, availableMana, card, whiteMana, blueMana, blackMana, redMana, greenMana, colorlessMana,
                 whiteCounter, blueCounter, blackCounter, redCounter, greenCounter, colorlessCounter);
-
-        primaryStage.setTitle("MTG Mana Tracker v.0.1.0");
+        primaryStage.setTitle("MTG Mana Tracker v.0.1.3");
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root, 800, 750));
         primaryStage.show();
     }
 
-    EventHandler<MouseEvent> whiteManaSelected =
-            new EventHandler<MouseEvent>() {
 
-                @Override
-                public void handle(MouseEvent t) {
-                    System.out.println("NEW ICON CREATED");
-                    ImageView oldIcon = new ImageView("/assets/White_Mana.png");
-                    oldIcon.setFitWidth(50);
-                    oldIcon.setFitHeight(50);
-                    oldIcon.setLayoutX(185);
-                    oldIcon.setLayoutY(70);
-                    oldIcon.setPreserveRatio(true);
-                    oldIcon.setSmooth(true);
-                    oldIcon.setCache(true);
-                    oldIcon.setOnMousePressed(whiteManaSelected);
-                    oldIcon.setOnMouseDragged(whiteManaDragged);
-                    oldIcon.setOnMouseReleased(whiteManaUnselected);
+    /*----------------------------------------------- EVENT FUNCTIONS -----------------------------------------------*/
+    private EventHandler<MouseEvent> determineClickAction = new EventHandler<MouseEvent>() {
+        boolean dragOccured = false;
+        @Override
+        public void handle(MouseEvent event) {
+            if(event.getEventType().equals(MouseEvent.MOUSE_PRESSED)){
+                if(event.getButton() == MouseButton.PRIMARY){
+                    // Construct a copy of the icon on top of the old so when it does get dragged the original is right under it //
+                    int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
 
-                    root.getChildren().add(oldIcon);
+                    ImageView orgIcon = new ImageView();
+                    orgIcon.setFitWidth(50);
+                    orgIcon.setFitHeight(50);
+                    orgIcon.setLayoutY(70);
+                    orgIcon.setPreserveRatio(true);
+                    orgIcon.setSmooth(true);
+                    orgIcon.setCache(true);
 
-                    orgWSceneX = t.getSceneX();
-                    orgWSceneY = t.getSceneY();
-                    orgWTranslateX = ((ImageView)(t.getSource())).getTranslateX();
-                    orgWTranslateY = ((ImageView)(t.getSource())).getTranslateY();
-                    //((ImageView)t.getSource()).setImage(new Image("/assets/White_Mana.png"));
+                    switch (layoutX){
+                        case 185:
+                            orgIcon.setImage(new Image("/assets/White_Mana.png"));
+                            orgIcon.setLayoutX(185);
+                            break;
+                        case 261:
+                            orgIcon.setImage(new Image("/assets/Blue_Mana.png"));
+                            orgIcon.setLayoutX(261);
+                            break;
+                        case 337:
+                            orgIcon.setImage(new Image("/assets/Black_Mana.png"));
+                            orgIcon.setLayoutX(337);
+                            break;
+                        case 413:
+                            orgIcon.setImage(new Image("/assets/Red_Mana.png"));
+                            orgIcon.setLayoutX(413);
+                            break;
+                        case 489:
+                            orgIcon.setImage(new Image("/assets/Green_Mana.png"));
+                            orgIcon.setLayoutX(489);
+                            break;
+                        case 565:
+                            orgIcon.setImage(new Image("/assets/Colorless_Mana.png"));
+                            orgIcon.setLayoutX(565);
+                            break;
+                    }
+                    orgIcon.addEventFilter(MouseEvent.ANY, determineClickAction);
+                    root.getChildren().add(orgIcon);
+                    System.out.println("ICON CREATED");
+
+                    orgSceneX = event.getSceneX();
+                    orgSceneY = event.getSceneY();
+                    orgTranslateX = ((ImageView)(event.getSource())).getTranslateX();
+                    orgTranslateY = ((ImageView)(event.getSource())).getTranslateY();
                 }
-            };
+            }else if(event.getEventType().equals(MouseEvent.MOUSE_RELEASED)){
+                int counterValue = 0;
 
-    EventHandler<MouseEvent> whiteManaUnselected =
-            new EventHandler<MouseEvent>() {
+                // Dragging Effects Happen Here //
+                if(event.getButton() == MouseButton.PRIMARY && dragOccured){
+                    System.out.println("DRAG ALERT");
+                    double dimX = event.getSceneX();
+                    double dimY = event.getSceneY();
 
-                @Override
-                public void handle(MouseEvent t) {
-                    // If we didn't get it to the container then just throw it away
-                    root.getChildren().remove(t.getSource());
+                    // Check if within card bounds to drop mana //
+                    if ((dimX > 258.5 && dimX < 541.5) && (dimY > 236 && dimY < 615)) {
+                        if (whiteManaDragged) {
+                            whiteManaDragged = false;
+                            counterValue = Math.max(0, Integer.parseInt(whiteCounter.getText()) - 1);
+                            whiteCounter.setText(String.valueOf(counterValue));
+                        } else if (blueManaDragged) {
+                            blueManaDragged = false;
+                            counterValue = Math.max(0, Integer.parseInt(blueCounter.getText()) - 1);
+                            blueCounter.setText(String.valueOf(counterValue));
+                        } else if (blackManaDragged) {
+                            blackManaDragged = false;
+                            counterValue = Math.max(0, Integer.parseInt(blackCounter.getText()) - 1);
+                            blackCounter.setText(String.valueOf(counterValue));
+                        } else if (redManaDragged) {
+                            redManaDragged = false;
+                            counterValue = Math.max(0, Integer.parseInt(redCounter.getText()) - 1);
+                            redCounter.setText(String.valueOf(counterValue));
+                        } else if (greenManaDragged) {
+                            greenManaDragged = false;
+                            counterValue = Math.max(0, Integer.parseInt(greenCounter.getText()) - 1);
+                            greenCounter.setText(String.valueOf(counterValue));
+                        } else if (colorlessManaDragged) {
+                            colorlessManaDragged = false;
+                            counterValue = Math.max(0, Integer.parseInt(colorlessCounter.getText()) - 1);
+                            colorlessCounter.setText(String.valueOf(counterValue));
+                        }
+                    }
+                    manaIsDragged = false;
+                    dragOccured = false;
+                    root.getChildren().remove(event.getSource());
+                    System.out.println("ICON DELETED");
+                }else if(event.getButton() == MouseButton.PRIMARY){
+                    System.out.println("QUICK CLICK");
+
+                    // This means it was just a quick click and should just add 1 to the counter //
+                    int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
+
+                    switch (layoutX){
+                        case 185:
+                            counterValue = Integer.parseInt(whiteCounter.getText()) + 1;
+                            whiteCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 261:
+                            counterValue = Integer.parseInt(blueCounter.getText()) + 1;
+                            blueCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 337:
+                            counterValue = Integer.parseInt(blackCounter.getText()) + 1;
+                            blackCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 413:
+                            counterValue = Integer.parseInt(redCounter.getText()) + 1;
+                            redCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 489:
+                            counterValue = Integer.parseInt(greenCounter.getText()) + 1;
+                            greenCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 565:
+                            counterValue = Integer.parseInt(colorlessCounter.getText()) + 1;
+                            colorlessCounter.setText(String.valueOf(counterValue));
+                            break;
+                    }
+                    // Still have to delete the copy we made when we first clicked the icon //
+                    root.getChildren().remove(event.getSource());
+                    System.out.println("ICON DELETED");
+                }else if(event.getButton() == MouseButton.SECONDARY){
+                    // This means we are reducing the counter by 1 //
+                    int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
+
+                    switch (layoutX){
+                        case 185:
+                            counterValue = Math.max(0, Integer.parseInt(whiteCounter.getText()) - 1);
+                            whiteCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 261:
+                            counterValue = Math.max(0, Integer.parseInt(blueCounter.getText()) - 1);
+                            blueCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 337:
+                            counterValue = Math.max(0, Integer.parseInt(blackCounter.getText()) - 1);
+                            blackCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 413:
+                            counterValue = Math.max(0, Integer.parseInt(redCounter.getText()) - 1);
+                            redCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 489:
+                            counterValue = Math.max(0, Integer.parseInt(greenCounter.getText()) - 1);
+                            greenCounter.setText(String.valueOf(counterValue));
+                            break;
+                        case 565:
+                            counterValue = Math.max(0, Integer.parseInt(colorlessCounter.getText()) - 1);
+                            colorlessCounter.setText(String.valueOf(counterValue));
+                            break;
+                    }
+                    // Notice here we don't have to delete the copied icon since it was never created to begin with //
                 }
-            };
+            }else if(event.getEventType().equals(MouseEvent.MOUSE_DRAGGED) && event.getButton() == MouseButton.PRIMARY){
+                dragOccured = true;
+                manaIsDragged = true;
+                int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
 
-    EventHandler<MouseEvent> whiteManaDragged =
-            new EventHandler<MouseEvent>() {
-
-                @Override
-                public void handle(MouseEvent t) {
-                    // Here we should create a new image //
-                    ((ImageView)t.getSource()).setImage(new Image("/assets/White_Mana_2.png"));
-
-                    double offsetX = t.getSceneX() - orgWSceneX;
-                    double offsetY = t.getSceneY() - orgWSceneY;
-                    double newTranslateX = orgWTranslateX + offsetX;
-                    double newTranslateY = orgWTranslateY + offsetY;
-
-                    ((ImageView)(t.getSource())).setTranslateX(newTranslateX);
-                    ((ImageView)(t.getSource())).setTranslateY(newTranslateY);
+                switch (layoutX){
+                    case 185:
+                        ((ImageView)event.getSource()).setImage(new Image("/assets/White_Mana_2.png"));
+                        whiteManaDragged = true;
+                        break;
+                    case 261:
+                        ((ImageView)event.getSource()).setImage(new Image("/assets/Blue_Mana_2.png"));
+                        blueManaDragged = true;
+                        break;
+                    case 337:
+                        ((ImageView)event.getSource()).setImage(new Image("/assets/Black_Mana_2.png"));
+                        blackManaDragged = true;
+                        break;
+                    case 413:
+                        ((ImageView)event.getSource()).setImage(new Image("/assets/Red_Mana_2.png"));
+                        redManaDragged = true;
+                        break;
+                    case 489:
+                        ((ImageView)event.getSource()).setImage(new Image("/assets/Green_Mana_2.png"));
+                        greenManaDragged = true;
+                        break;
+                    case 565:
+                        ((ImageView)event.getSource()).setImage(new Image("/assets/Colorless_Mana_2.png"));
+                        colorlessManaDragged = true;
+                        break;
                 }
-            };
+                double offsetX = event.getSceneX() - orgSceneX;
+                double offsetY = event.getSceneY() - orgSceneY;
+                double newTranslateX = orgTranslateX + offsetX;
+                double newTranslateY = orgTranslateY + offsetY;
 
+                ((ImageView)(event.getSource())).setTranslateX(newTranslateX);
+                ((ImageView)(event.getSource())).setTranslateY(newTranslateY);
+            }
+        }
+    };
+
+    private EventHandler<MouseEvent> backgroundSelected = new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent t) {
+            if(cardToggled == false){
+                System.out.println("CARD DESELECTED");
+                card.setDisable(true);
+                cardToggled = false;
+            }
+        }
+    };
+
+    EventHandler<MouseEvent> cardSelected = new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent t) {
+            if(cardToggled == false){
+                // If we click on the card
+                newSpell.setText("NEW SPELL");
+                newSpell.setTextFill(Color.WHITE);
+                newSpell.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
+                newSpell.setAlignment(CENTER);
+                newSpell.setPrefSize(150,28);
+                newSpell.setLayoutX(325);
+                newSpell.setLayoutY(200);
+
+                discardCard.setImage(new Image("/assets/Discard.png"));
+                discardCard.setFitWidth(50);
+                discardCard.setFitHeight(50);
+                discardCard.setLayoutX(258.5);
+                discardCard.setLayoutY(651);
+                discardCard.setPreserveRatio(true);
+                discardCard.setSmooth(true);
+                discardCard.setCache(true);
+
+                addCard.setImage(new Image("/assets/Add_Spell.png"));
+                addCard.setFitWidth(50);
+                addCard.setFitHeight(50);
+                addCard.setLayoutX(491.5);
+                addCard.setLayoutY(651);
+                addCard.setPreserveRatio(true);
+                addCard.setSmooth(true);
+                addCard.setCache(true);
+
+                root.getChildren().addAll(newSpell, discardCard, addCard);
+
+                cardToggled = true;
+                System.out.println("CARD SELECTED");
+            }
+        }
+    };
 
     public static void main(String[] args) {
         launch(args);
