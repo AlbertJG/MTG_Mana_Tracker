@@ -95,10 +95,30 @@
             <Image url="@../assets/Add_Spell.png" />
          </image>
       </ImageView>
-      <ImageView fitHeight="379.0" fitWidth="240.0" layoutX="-211.0" layoutY="236.0" pickOnBounds="true" preserveRatio="true">
+      <ImageView fitHeight="379.0" fitWidth="240.0" layoutX="-190.0" layoutY="236.0" pickOnBounds="true" preserveRatio="true">
          <image>
             <Image url="@../assets/Spell_History.png" />
          </image>
       </ImageView>
+      <ImageView fitHeight="379.0" fitWidth="240.0" layoutX="560.0" layoutY="236.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../assets/Spell_Info.png" />
+         </image>
+      </ImageView>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="624.0" layoutY="256.0" prefHeight="28.0" prefWidth="150.0" text="PENDING" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="18.0" />
+         </font>
+      </Label>
+      <ImageView fitHeight="50.0" fitWidth="100.0" layoutX="350.0" layoutY="125.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../assets/Total_Mana.png" />
+         </image>
+      </ImageView>
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="375.0" layoutY="136.0" prefHeight="28.0" prefWidth="50.0" text="100" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="Franklin Gothic Demi Italic" size="24.0" />
+         </font>
+      </Label>
    </children>
 </Pane>

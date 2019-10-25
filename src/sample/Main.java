@@ -37,12 +37,13 @@ public class Main extends Application {
     private ImageView colorlessMana = new ImageView();
 
     // -------- MANA LABELS -------- //
-    private Label whiteCounter = new Label("10");
+    private Label whiteCounter = new Label("0");
     private Label blueCounter = new Label("0");
     private Label blackCounter = new Label("0");
     private Label redCounter = new Label("0");
     private Label greenCounter = new Label("0");
     private Label colorlessCounter = new Label("0");
+    private Label totalCounter = new Label("0");
 
     // -------- MANA TRANSITION -------- //
     private double orgSceneX;
@@ -55,10 +56,11 @@ public class Main extends Application {
     private ImageView discardCard = new ImageView();
     private ImageView addCard = new ImageView();
     private ImageView card = new ImageView();
+
+    // -------- SPELL HISTORY -------- //
     private ImageView spellHistory = new ImageView();
-
-
-    public boolean cardToggled = false;
+    private ImageView spellInfo = new ImageView();
+    private Label spellName = new Label();
 
     // -------- MANA DRAGGED FLAGS -------- //
     private boolean manaIsDragged = false;
@@ -69,8 +71,12 @@ public class Main extends Application {
     private boolean greenManaDragged = false;
     private boolean colorlessManaDragged = false;
 
-    // -------- OTHER FLAGS --------
+    // -------- OTHER FLAGS -------- //
+    private boolean cardToggled = false;
     private boolean spellHistoryToggled = false;
+    private boolean spellInfoToggled = false;
+
+    // -------- SPELL LIST -------- //
 
 
 
@@ -93,6 +99,15 @@ public class Main extends Application {
         availableMana.setPreserveRatio(true);
         availableMana.setSmooth(true);
         availableMana.setCache(true);
+
+        ImageView totalMana = new ImageView("/assets/Total_Mana.png");
+        totalMana.setFitWidth(100);
+        totalMana.setFitHeight(50);
+        totalMana.setLayoutX(350);
+        totalMana.setLayoutY(125);
+        totalMana.setPreserveRatio(true);
+        totalMana.setSmooth(true);
+        totalMana.setCache(true);
 
         // CARD ICON //
         card.setImage(new Image("/assets/Magic_Card_Template.png"));
@@ -211,6 +226,14 @@ public class Main extends Application {
         colorlessCounter.setPrefSize(44,28);
         colorlessCounter.setLayoutX(568);
         colorlessCounter.setLayoutY(29);
+        
+        // TOTAL MANA COUNTER //
+        totalCounter.setTextFill(Color.WHITE);
+        totalCounter.setFont(Font.font("Franklin Gothic Demi", FontPosture.ITALIC,24));
+        totalCounter.setAlignment(CENTER);
+        totalCounter.setPrefSize(50,28);
+        totalCounter.setLayoutX(375);
+        totalCounter.setLayoutY(136);
 
         // NEW SPELL CREATION //
         newSpell.setText("NEW SPELL");
@@ -250,12 +273,22 @@ public class Main extends Application {
         spellHistory.setImage(new Image("/assets/Spell_History.png"));
         spellHistory.setFitWidth(240);
         spellHistory.setFitHeight(379);
-        spellHistory.setLayoutX(-211);
+        spellHistory.setLayoutX(-190);
         spellHistory.setLayoutY(236);
         spellHistory.translateXProperty().set(0);
         spellHistory.setPreserveRatio(true);
         spellHistory.setSmooth(true);
         spellHistory.setCache(true);
+
+        spellInfo.setImage(new Image("/assets/Spell_Info.png"));
+        spellInfo.setFitWidth(240);
+        spellInfo.setFitHeight(379);
+        spellInfo.setLayoutX(750);
+        spellInfo.setLayoutY(236);
+        spellInfo.translateXProperty().set(0);
+        spellInfo.setPreserveRatio(true);
+        spellInfo.setSmooth(true);
+        spellInfo.setCache(true);
 
         /*------------------------------------------------ CONTROLS ------------------------------------------------*/
         // CARD ICON CONTROLS //
@@ -273,13 +306,14 @@ public class Main extends Application {
         canvas.setOnMouseClicked(backgroundSelected);
 
         // SPELL HISTORY CONTROLS //
-        spellHistory.addEventFilter(MouseEvent.ANY, openSpellHistory);
+        spellHistory.addEventFilter(MouseEvent.ANY, toggleSpellHistory);
+        spellInfo.addEventFilter(MouseEvent.ANY, toggleSpellInfo);
 
         /*-------------------------------------------------- STAGE --------------------------------------------------*/
         root.getChildren().addAll(canvas, availableMana, card, whiteMana, blueMana, blackMana, redMana, greenMana, colorlessMana,
                 whiteCounter, blueCounter, blackCounter, redCounter, greenCounter, colorlessCounter, newSpell, discardCard,
-                addCard, spellHistory);
-        primaryStage.setTitle("MTG Mana Tracker v.0.1.5");
+                addCard, spellHistory, spellInfo, totalMana, totalCounter);
+        primaryStage.setTitle("MTG Mana Tracker v.0.1.6");
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root, 800, 750));
         primaryStage.show();
@@ -341,6 +375,7 @@ public class Main extends Application {
                 }
             }else if(event.getEventType().equals(MouseEvent.MOUSE_RELEASED)){
                 int counterValue = 0;
+                int totalManaCount =  0;
 
                 // Dragging Effects Happen Here //
                 if(event.getButton() == MouseButton.PRIMARY && dragOccured){
@@ -350,6 +385,8 @@ public class Main extends Application {
 
                     // Check if within card bounds to drop mana //
                     if ((dimX > 258.5 && dimX < 541.5) && (dimY > 236 && dimY < 615)) {
+                        totalManaCount = Math.max(0, Integer.parseInt(totalCounter.getText())-1);
+                        totalCounter.setText(String.valueOf(totalManaCount));
                         if (whiteManaDragged) {
                             whiteManaDragged = false;
                             counterValue = Math.max(0, Integer.parseInt(whiteCounter.getText()) - 1);
@@ -394,7 +431,8 @@ public class Main extends Application {
                     // Card should also be toggled when dropping mana into it //
                 }else if(event.getButton() == MouseButton.PRIMARY){
                     System.out.println("QUICK CLICK");
-
+                    totalManaCount = Integer.parseInt(totalCounter.getText())+1;
+                    totalCounter.setText(String.valueOf(totalManaCount));
                     // This means it was just a quick click and should just add 1 to the counter //
                     int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
 
@@ -430,31 +468,38 @@ public class Main extends Application {
                 }else if(event.getButton() == MouseButton.SECONDARY){
                     // This means we are reducing the counter by 1 //
                     int layoutX = (int)((ImageView)event.getSource()).getLayoutX();
+                    totalManaCount = Math.max(0, Integer.parseInt(totalCounter.getText())-1);
 
                     switch (layoutX){
                         case 185:
                             counterValue = Math.max(0, Integer.parseInt(whiteCounter.getText()) - 1);
                             whiteCounter.setText(String.valueOf(counterValue));
+                            totalCounter.setText(String.valueOf(totalManaCount));
                             break;
                         case 261:
                             counterValue = Math.max(0, Integer.parseInt(blueCounter.getText()) - 1);
                             blueCounter.setText(String.valueOf(counterValue));
+                            totalCounter.setText(String.valueOf(totalManaCount));
                             break;
                         case 337:
                             counterValue = Math.max(0, Integer.parseInt(blackCounter.getText()) - 1);
                             blackCounter.setText(String.valueOf(counterValue));
+                            totalCounter.setText(String.valueOf(totalManaCount));
                             break;
                         case 413:
                             counterValue = Math.max(0, Integer.parseInt(redCounter.getText()) - 1);
                             redCounter.setText(String.valueOf(counterValue));
+                            totalCounter.setText(String.valueOf(totalManaCount));
                             break;
                         case 489:
                             counterValue = Math.max(0, Integer.parseInt(greenCounter.getText()) - 1);
                             greenCounter.setText(String.valueOf(counterValue));
+                            totalCounter.setText(String.valueOf(totalManaCount));
                             break;
                         case 565:
                             counterValue = Math.max(0, Integer.parseInt(colorlessCounter.getText()) - 1);
                             colorlessCounter.setText(String.valueOf(counterValue));
+                            totalCounter.setText(String.valueOf(totalManaCount));
                             break;
                     }
                     // Notice here we don't have to delete the copied icon since it was never created to begin with //
@@ -541,30 +586,59 @@ public class Main extends Application {
         }
     };
 
-    EventHandler<MouseEvent> openSpellHistory = new EventHandler<MouseEvent>() {
+    EventHandler<MouseEvent> toggleSpellHistory = new EventHandler<MouseEvent>() {
         @Override
         public void handle(MouseEvent event) {
             if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED)) {
                 double dimX = event.getSceneX();
                 double dimY = event.getSceneY();
 
-                if (event.getButton() == MouseButton.PRIMARY && !spellHistoryToggled) {
+                if (event.getButton() == MouseButton.PRIMARY && !spellHistoryToggled && (dimX > 22 && dimX < 50) && (dimY > 390.5 && dimY < 460.5)) {
                     // Window should slide out //
                     Timeline timeline = new Timeline();
-                    KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), 200, Interpolator.EASE_IN);
+                    KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), 178, Interpolator.EASE_IN);
                     KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
                     timeline.getKeyFrames().add(kf);
                     timeline.play();
                     ((ImageView)event.getSource()).translateXProperty().set(230);
                     spellHistoryToggled = true;
-                }else if(event.getButton() == MouseButton.PRIMARY && (dimX > 200 && dimX < 230) && (dimY > 390.5 && dimY < 460.5)){
-                    // Untoggle the history //
+                }else if(event.getButton() == MouseButton.PRIMARY && (dimX > 200 && dimX < 228) && (dimY > 390.5 && dimY < 460.5)){
+                    // Window should slide back in //
                     Timeline timeline = new Timeline();
                     KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), 0, Interpolator.EASE_OUT);
                     KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
                     timeline.getKeyFrames().add(kf);
                     timeline.play();
                     spellHistoryToggled = false;
+                }
+            }
+        }
+    };
+
+    EventHandler<MouseEvent> toggleSpellInfo = new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent event) {
+            if (event.getEventType().equals(MouseEvent.MOUSE_RELEASED)) {
+                double dimX = event.getSceneX();
+                double dimY = event.getSceneY();
+
+                if (event.getButton() == MouseButton.PRIMARY && !spellInfoToggled && (dimX > 750 && dimX < 778) && (dimY > 390.5 && dimY < 460.5)) {
+                    // Window should slide out //
+                    Timeline timeline = new Timeline();
+                    KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), -178, Interpolator.EASE_OUT);
+                    KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
+                    timeline.getKeyFrames().add(kf);
+                    timeline.play();
+                    ((ImageView)event.getSource()).translateXProperty().set(230);
+                    spellInfoToggled = true;
+                }else if(event.getButton() == MouseButton.PRIMARY && (dimX > 560 && dimX < 588) && (dimY > 390.5 && dimY < 460.5)){
+                    // Window should slide back in //
+                    Timeline timeline = new Timeline();
+                    KeyValue kv = new KeyValue(((ImageView)event.getSource()).translateXProperty(), 0, Interpolator.EASE_IN);
+                    KeyFrame kf = new KeyFrame(Duration.seconds(1), kv);
+                    timeline.getKeyFrames().add(kf);
+                    timeline.play();
+                    spellInfoToggled = false;
                 }
             }
         }
